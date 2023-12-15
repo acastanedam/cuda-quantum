@@ -61,9 +61,22 @@ protected:
   /// @brief Get server quantum architecture name
   std::string getQuantumArchitectureName() const {
     RestClient client;
+
+    std::string hub, group, project;
+    if (hub.empty() && group.empty() && project.empty()) {
+      // Fallback to public API credentials
+      hub = "ibm-q-fraunhofer";
+      group = "fhg-all";
+      project = "fitw01";
+    }
+    std::string getBackendPropertiesPath = "/api/Network/" + hub + "/Groups/" +
+                                           group + "/Projects/" + project +
+                                           "/devices/";
+    std::string bprops = qpuArchitecture + "/properties";
+
     auto headers = generateRequestHeader();
     auto quantumArchitecture =
-        client.get(ibmqServerUrl, "quantum-architecture", headers);
+        client.get(getBackendPropertiesPath, bprops, headers);
     try {
       cudaq::debug("quantumArchitecture = {}", quantumArchitecture.dump());
       return quantumArchitecture["quantum_architecture"]["name"]
